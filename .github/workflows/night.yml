@@ -49,8 +49,8 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
-        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
+        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -77,8 +77,8 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
-        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
+        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -92,16 +92,46 @@ jobs:
     - name: Job B
       working-directory: code
       run: python -m night.main job-b
-  c:
-    name: 'C: title, description, thumbnails, Drive, email'
-    needs: b
+  kit:
+    name: 'K: title, description, thumbnails (alongside the render)'
+    needs: a
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
-        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
+        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+    - uses: actions/checkout@v4
+      with:
+        repository: kapilshipturtle/night-studio
+        token: ${{ secrets.NIGHT_CODE_TOKEN }}
+        path: code
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Tools
+      run: bash code/scripts/setup-runner.sh
+    - name: Night setup
+      run: bash code/scripts/setup-night.sh
+    - name: Job kit
+      working-directory: code
+      run: python -m night.main job-kit
+  c:
+    name: 'C: Drive folder complete + email'
+    needs:
+    - b
+    - kit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+    - name: Mask every secret
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
+        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -120,6 +150,7 @@ jobs:
     - name: Job C
       working-directory: code
       run: python -m night.main job-c
+    if: ${{ always() && needs.b.result == 'success' }}
   notify:
     needs:
     - a
@@ -130,8 +161,8 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
-        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
+        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -160,8 +191,9 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: gh api -X PUT repos/${{ github.repository }}/actions/workflows/night.yml/enable
   full_after_test:
-    name: "Test passed: start the 2-hour film"
-    needs: [c]
+    name: 'Test passed: start the 2-hour film'
+    needs:
+    - c
     if: ${{ success() && inputs.test }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
