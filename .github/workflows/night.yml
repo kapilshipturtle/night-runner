@@ -45,6 +45,7 @@ env:
   NIGHT_CLOUD: "1"
   NIGHT_TARGET_MINUTES: ${{ inputs.minutes || '120' }}
   NIGHT_TEST: ${{ inputs.test && '1' || '' }}
+  NIGHT_CODE_REF: ${{ inputs.code_ref || 'gemini-route' }}     # a follow-up run (long render) keeps the same code
   PYTHONUNBUFFERED: "1"            # progress lines reach the Actions log as they happen
   NIGHT_WORK: /home/runner/night-work
 permissions:
