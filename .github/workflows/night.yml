@@ -74,8 +74,10 @@ jobs:
       with:
         python-version: '3.12'
     - name: Tools
+      timeout-minutes: 20
       run: bash code/scripts/setup-runner.sh
     - name: Night setup (stock scorer, voice library)
+      timeout-minutes: 30
       run: bash code/scripts/setup-night.sh --stock
     - name: Bridge box key
       run: |
@@ -105,6 +107,7 @@ jobs:
       with:
         python-version: '3.12'
     - name: Tools
+      timeout-minutes: 20
       run: bash code/scripts/setup-runner.sh
     - name: Job B
       working-directory: code
@@ -132,8 +135,10 @@ jobs:
       with:
         python-version: '3.12'
     - name: Tools
+      timeout-minutes: 20
       run: bash code/scripts/setup-runner.sh
     - name: Night setup
+      timeout-minutes: 30
       run: bash code/scripts/setup-night.sh
     - name: Job kit
       working-directory: code
@@ -163,8 +168,10 @@ jobs:
       with:
         python-version: '3.12'
     - name: Tools
+      timeout-minutes: 20
       run: bash code/scripts/setup-runner.sh
     - name: Night setup
+      timeout-minutes: 30
       run: bash code/scripts/setup-night.sh
     - name: Job C
       working-directory: code
