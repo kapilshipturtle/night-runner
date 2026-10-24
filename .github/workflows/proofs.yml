@@ -19,23 +19,28 @@ jobs:
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
     steps:
-      - name: Mask every secret
-        run: |
-          for v in "$CLAUDE_TOKEN_TECH" "$CLAUDE_TOKEN_MANN" "$CLAUDE_TOKEN_KAPIL" "$FISH_API_KEY" "$GMAIL_APP_PASSWORD" "$PEXELS_API_KEY" "$PIXABAY_API_KEY"; do [ -n "$v" ] && echo "::add-mask::$v"; done; true
-      - uses: actions/checkout@v4
-        with:
-          repository: kapilshipturtle/night-studio
-          token: ${{ secrets.NIGHT_CODE_TOKEN }}
-          path: code
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - name: Tools
-        run: bash code/scripts/setup-runner.sh
-      - name: Proofs
-        working-directory: code
-        run: python -m night.proofs --out proofs.json
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: proofs, path: code/proofs.json }
+    - name: Mask every secret
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+    - uses: actions/checkout@v4
+      with:
+        repository: kapilshipturtle/night-studio
+        token: ${{ secrets.NIGHT_CODE_TOKEN }}
+        path: code
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Tools
+      run: bash code/scripts/setup-runner.sh
+    - name: Proofs
+      working-directory: code
+      run: python -m night.proofs --out proofs.json
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: proofs
+        path: code/proofs.json

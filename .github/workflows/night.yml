@@ -29,8 +29,9 @@ jobs:
     timeout-minutes: 350
     steps:
     - name: Mask every secret
-      run: for v in "$CLAUDE_TOKEN_TECH" "$CLAUDE_TOKEN_MANN" "$CLAUDE_TOKEN_KAPIL" "$FISH_API_KEY" "$GMAIL_APP_PASSWORD" "$PEXELS_API_KEY" "$PIXABAY_API_KEY"; do [ -n "$v" ] && echo "::add-mask::$v"; done;
-        true
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -56,8 +57,9 @@ jobs:
     timeout-minutes: 350
     steps:
     - name: Mask every secret
-      run: for v in "$CLAUDE_TOKEN_TECH" "$CLAUDE_TOKEN_MANN" "$CLAUDE_TOKEN_KAPIL" "$FISH_API_KEY" "$GMAIL_APP_PASSWORD" "$PEXELS_API_KEY" "$PIXABAY_API_KEY"; do [ -n "$v" ] && echo "::add-mask::$v"; done;
-        true
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -78,8 +80,9 @@ jobs:
     timeout-minutes: 120
     steps:
     - name: Mask every secret
-      run: for v in "$CLAUDE_TOKEN_TECH" "$CLAUDE_TOKEN_MANN" "$CLAUDE_TOKEN_KAPIL" "$FISH_API_KEY" "$GMAIL_APP_PASSWORD" "$PEXELS_API_KEY" "$PIXABAY_API_KEY"; do [ -n "$v" ] && echo "::add-mask::$v"; done;
-        true
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -103,9 +106,13 @@ jobs:
     - a
     - b
     - c
-    if: failure()
+    if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
     runs-on: ubuntu-latest
     steps:
+    - name: Mask every secret
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -118,3 +125,18 @@ jobs:
     - name: Email the stage and error
       working-directory: code
       run: python -m night.main notify
+    timeout-minutes: 20
+  keepalive:
+    name: Keep the nightly schedule enabled
+    if: ${{ always() }}
+    needs:
+    - c
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+    - name: Re-enable this workflow (GitHub turns schedules off after 60 days without repo activity)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh api -X PUT repos/${{ github.repository }}/actions/workflows/night.yml/enable
