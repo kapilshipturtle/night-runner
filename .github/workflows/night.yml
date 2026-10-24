@@ -5,6 +5,14 @@ on:
   # schedule:
   #   - cron: "30 16 * * *"        # 22:00 IST
   workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Film length in minutes (5 = the short full-flow test; USER 10-24: always test small first)"
+        default: "120"
+      test:
+        description: "Test run: own state file, '[TEST]' title, the topic is not marked as made"
+        type: boolean
+        default: false
 concurrency:
   group: night
   cancel-in-progress: false
@@ -26,6 +34,8 @@ env:
   PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
   PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
   NIGHT_CLOUD: "1"
+  NIGHT_TARGET_MINUTES: ${{ inputs.minutes || '120' }}
+  NIGHT_TEST: ${{ inputs.test && '1' || '' }}
   PYTHONUNBUFFERED: "1"            # progress lines reach the Actions log as they happen
   NIGHT_WORK: /home/runner/night-work
 permissions:
