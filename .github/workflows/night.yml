@@ -12,8 +12,15 @@ on:
         description: "Test run: own state file, '[TEST]' title, the topic is not marked as made"
         type: boolean
         default: false
+      code_ref:
+        description: "night-studio branch to run (tests of a new route run their branch; nightly films run main)"
+        default: "main"
+      full_after:
+        description: "After a passing test, start the full 2-hour film right away"
+        type: boolean
+        default: true
 concurrency:
-  group: night
+  group: night${{ inputs.test && '-test' || '' }}
   cancel-in-progress: false
 env:
   CLAUDE_TOKEN_TECH: ${{ secrets.CLAUDE_TOKEN_TECH }}
@@ -32,6 +39,9 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
   PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
   PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+  # Gemini route (USER 10-24): job A starts/stops the vast.ai bridge box and reaches it over SSH
+  VAST_API_KEY: ${{ secrets.VAST_API_KEY }}
+  BRIDGE_SSH_KEY: ${{ secrets.BRIDGE_SSH_KEY }}
   NIGHT_CLOUD: "1"
   NIGHT_TARGET_MINUTES: ${{ inputs.minutes || '120' }}
   NIGHT_TEST: ${{ inputs.test && '1' || '' }}
@@ -48,12 +58,13 @@ jobs:
     timeout-minutes: 350
     steps:
     - name: Mask every secret
-      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
         \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
+        ref: ${{ inputs.code_ref || 'main' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -66,6 +77,11 @@ jobs:
       run: bash code/scripts/setup-runner.sh
     - name: Night setup (stock scorer, voice library)
       run: bash code/scripts/setup-night.sh --stock
+    - name: Bridge box key
+      run: |
+        [ -n "$BRIDGE_SSH_KEY" ] || { echo "BRIDGE_SSH_KEY secret missing (Gemini route)"; exit 0; }
+        mkdir -p ~/.ssh && printf '%s\n' "$BRIDGE_SSH_KEY" > ~/.ssh/bridge_key && chmod 600 ~/.ssh/bridge_key
+        echo "BRIDGE_SSH_KEY_FILE=$HOME/.ssh/bridge_key" >> "$GITHUB_ENV"
     - name: Job A
       working-directory: code
       run: python -m night.main job-a
@@ -76,12 +92,13 @@ jobs:
     timeout-minutes: 350
     steps:
     - name: Mask every secret
-      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
         \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
+        ref: ${{ inputs.code_ref || 'main' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-python@v5
@@ -99,12 +116,13 @@ jobs:
     timeout-minutes: 120
     steps:
     - name: Mask every secret
-      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
         \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
+        ref: ${{ inputs.code_ref || 'main' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -129,12 +147,13 @@ jobs:
     timeout-minutes: 120
     steps:
     - name: Mask every secret
-      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
         \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
+        ref: ${{ inputs.code_ref || 'main' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -160,12 +179,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Mask every secret
-      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
+      run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
         \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
+        ref: ${{ inputs.code_ref || 'main' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-python@v5
@@ -194,7 +214,7 @@ jobs:
     name: 'Test passed: start the 2-hour film'
     needs:
     - c
-    if: ${{ success() && inputs.test }}
+    if: ${{ success() && inputs.test && inputs.full_after }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -203,4 +223,4 @@ jobs:
     - name: Start the full-length run (queued behind this one by the 'night' concurrency group)
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false
+      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'main' }}
