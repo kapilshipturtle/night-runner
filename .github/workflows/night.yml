@@ -1,8 +1,9 @@
 # Night Studio: one ~2-hour sleep-history film per night, $0 (plan Task 9). Each job resumes from Drive state.
 name: night
 on:
-  schedule:
-    - cron: "30 16 * * *"          # 22:00 IST
+  # schedule is switched on ONLY after the 2-hour dry run passes (plan Task 10 step 5):
+  # schedule:
+  #   - cron: "30 16 * * *"        # 22:00 IST
   workflow_dispatch:
 concurrency:
   group: night
