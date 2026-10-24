@@ -1,6 +1,10 @@
 # Night Studio cloud proofs (plan Task 1). Manual only. Tests every login/service headless; prints OK/FAIL, never a value.
 name: proofs
 on: workflow_dispatch
+permissions:
+  contents: read
+  issues: write
+  actions: write
 jobs:
   proofs:
     runs-on: ubuntu-latest
@@ -8,7 +12,8 @@ jobs:
     env:
       CLAUDE_TOKEN_TECH: ${{ secrets.CLAUDE_TOKEN_TECH }}
       CLAUDE_TOKEN_MANN: ${{ secrets.CLAUDE_TOKEN_MANN }}
-      CLAUDE_TOKEN_KAPIL: ${{ secrets.CLAUDE_TOKEN_KAPIL }}
+      # USER 10-24: the token saved under the TECH name is kapil's; KAPIL wins once it is set
+      CLAUDE_TOKEN_KAPIL: ${{ secrets.CLAUDE_TOKEN_KAPIL || secrets.CLAUDE_TOKEN_TECH }}
       CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
       FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
       KAGGLE_NIGHT_JSON: ${{ secrets.KAGGLE_NIGHT_JSON }}
@@ -17,6 +22,8 @@ jobs:
       GMAIL_USER: ${{ secrets.GMAIL_USER }}
       GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
       MAIL_TO: ${{ secrets.MAIL_TO }}
+      # no Gmail password: the message becomes an issue here and GitHub emails it (no login needed)
+      GITHUB_TOKEN: ${{ github.token }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
     steps:
