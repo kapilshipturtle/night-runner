@@ -26,6 +26,7 @@ env:
   PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
   PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
   NIGHT_CLOUD: "1"
+  PYTHONUNBUFFERED: "1"            # progress lines reach the Actions log as they happen
   NIGHT_WORK: /home/runner/night-work
 permissions:
   contents: read
