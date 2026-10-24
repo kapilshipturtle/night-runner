@@ -1,9 +1,8 @@
 # Night Studio: one ~2-hour sleep-history film per night, $0 (plan Task 9). Each job resumes from Drive state.
 name: night
 on:
-  # schedule is switched on ONLY after the 2-hour dry run passes (plan Task 10 step 5):
-  # schedule:
-  #   - cron: "30 16 * * *"        # 22:00 IST
+  schedule:
+    - cron: "30 16 * * *"          # 22:00 IST, every night (USER 10-24: "run it automatically")
   workflow_dispatch:
     inputs:
       minutes:
@@ -160,3 +159,16 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: gh api -X PUT repos/${{ github.repository }}/actions/workflows/night.yml/enable
+  full_after_test:
+    name: "Test passed: start the 2-hour film"
+    needs: [c]
+    if: ${{ success() && inputs.test }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+    - name: Start the full-length run (queued behind this one by the 'night' concurrency group)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false
