@@ -14,7 +14,7 @@ on:
         default: false
       code_ref:
         description: "night-studio branch to run (tests of a new route run their branch; nightly films run main)"
-        default: "main"
+        default: "gemini-route"
       full_after:
         description: "After a passing test, start the full 2-hour film right away"
         type: boolean
@@ -64,7 +64,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
-        ref: ${{ inputs.code_ref || 'main' }}
+        ref: ${{ inputs.code_ref || 'gemini-route' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -98,7 +98,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
-        ref: ${{ inputs.code_ref || 'main' }}
+        ref: ${{ inputs.code_ref || 'gemini-route' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-python@v5
@@ -122,7 +122,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
-        ref: ${{ inputs.code_ref || 'main' }}
+        ref: ${{ inputs.code_ref || 'gemini-route' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -153,7 +153,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
-        ref: ${{ inputs.code_ref || 'main' }}
+        ref: ${{ inputs.code_ref || 'gemini-route' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-node@v4
@@ -185,7 +185,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
-        ref: ${{ inputs.code_ref || 'main' }}
+        ref: ${{ inputs.code_ref || 'gemini-route' }}
         token: ${{ secrets.NIGHT_CODE_TOKEN }}
         path: code
     - uses: actions/setup-python@v5
@@ -223,4 +223,4 @@ jobs:
     - name: Start the full-length run (queued behind this one by the 'night' concurrency group)
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'main' }}
+      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'gemini-route' }}
