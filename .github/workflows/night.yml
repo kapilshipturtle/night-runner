@@ -15,6 +15,7 @@ env:
   CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
   FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
   KAGGLE_NIGHT_JSON: ${{ secrets.KAGGLE_NIGHT_JSON }}
+  KAGGLE_NIGHT_JSON_2: ${{ secrets.KAGGLE_NIGHT_JSON_2 }}
   GDRIVE_TOKEN_JSON: ${{ secrets.GDRIVE_TOKEN_JSON }}
   GMAIL_USER: ${{ secrets.GMAIL_USER }}
   GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -31,7 +32,7 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
         ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
@@ -59,7 +60,7 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
         ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
@@ -82,7 +83,7 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
         ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
@@ -112,7 +113,7 @@ jobs:
     steps:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\"; do [ -n \"$v\" ] && echo \"\
-        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$GDRIVE_TOKEN_JSON\"\
+        ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\" \"$GDRIVE_TOKEN_JSON\"\
         ; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
