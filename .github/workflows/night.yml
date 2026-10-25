@@ -12,6 +12,9 @@ on:
         description: "Test run: own state file, '[TEST]' title, the topic is not marked as made"
         type: boolean
         default: false
+      channel:
+        description: "Which channel: history (Night Studio, default) or legends (Legends for Sleep)"
+        default: "history"
       code_ref:
         description: "night-studio branch to run (tests of a new route run their branch; nightly films run main)"
         default: "main"
@@ -20,7 +23,7 @@ on:
         type: boolean
         default: true
 concurrency:
-  group: night${{ inputs.test && '-test' || '' }}
+  group: night-${{ inputs.channel || 'history' }}${{ inputs.test && '-test' || '' }}
   cancel-in-progress: false
 env:
   CLAUDE_TOKEN_TECH: ${{ secrets.CLAUDE_TOKEN_TECH }}
@@ -45,7 +48,8 @@ env:
   NIGHT_CLOUD: "1"
   NIGHT_TARGET_MINUTES: ${{ inputs.minutes || '120' }}
   NIGHT_TEST: ${{ inputs.test && '1' || '' }}
-  NIGHT_CODE_REF: ${{ inputs.code_ref || 'main' }}     # a follow-up run (long render) keeps the same code
+  NIGHT_CODE_REF: ${{ inputs.code_ref || 'main' }}
+  NIGHT_CHANNEL: ${{ inputs.channel || 'history' }}       # USER 10-25: Legends for Sleep runs after History     # a follow-up run (long render) keeps the same code
   PYTHONUNBUFFERED: "1"            # progress lines reach the Actions log as they happen
   NIGHT_WORK: /home/runner/night-work
 permissions:
@@ -231,4 +235,17 @@ jobs:
     - name: Start the full-length run (queued behind this one by the 'night' concurrency group)
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'main' }}
+      run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f channel=${{ inputs.channel || 'history' }}
+  next_channel:
+    name: 'History done: start Legends for Sleep'
+    needs: c
+    if: ${{ !cancelled() && vars.LEGENDS_NIGHTLY == 'on' && (inputs.channel || 'history') == 'history' && !inputs.test }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+    - name: Start tonight's Legends for Sleep film (USER 10-25 - after History finishes)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run night.yml -R ${{ github.repository }} -f channel=legends -f minutes=${{ inputs.minutes || '120' }} -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f full_after=false
