@@ -84,6 +84,10 @@ jobs:
     - name: Night setup (stock scorer, voice library)
       timeout-minutes: 30
       run: bash code/scripts/setup-night.sh --stock
+    - name: Gemini Chrome (Legends pictures on this machine)
+      if: ${{ (inputs.channel || 'history') == 'legends' }}
+      timeout-minutes: 15
+      run: bash code/scripts/setup-gemini.sh
     - name: Bridge box key
       run: |
         [ -n "$BRIDGE_SSH_KEY" ] || { echo "BRIDGE_SSH_KEY secret missing (Gemini route)"; exit 0; }
