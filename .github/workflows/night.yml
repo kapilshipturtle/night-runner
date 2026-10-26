@@ -84,6 +84,13 @@ jobs:
     - name: Tools
       timeout-minutes: 20
       run: bash code/scripts/setup-runner.sh
+    - name: Cached scorer + ffmpeg (no 1 GB download on a normal night)
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.hyperframes-tools/stock-venv
+          ~/.hyperframes-tools/ffmpeg7
+        key: night-tools-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('code/scripts/setup-night.sh') }}
     - name: Night setup (stock scorer, voice library)
       timeout-minutes: 30
       run: bash code/scripts/setup-night.sh --stock
