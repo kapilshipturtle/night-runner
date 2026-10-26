@@ -18,6 +18,9 @@ on:
       code_ref:
         description: "night-studio branch to run (tests of a new route run their branch; nightly films run main)"
         default: "main"
+      attempt:
+        description: "Automatic retry counter (1 = first try; a failed night retries itself up to attempt 3)"
+        default: "1"
       full_after:
         description: "After a passing test, start the full 2-hour film right away"
         type: boolean
@@ -191,7 +194,7 @@ jobs:
     - a
     - b
     - c
-    if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
+    if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && ((inputs.attempt || '1') == '3' || inputs.test) }}
     runs-on: ubuntu-latest
     steps:
     - name: Mask every secret
@@ -243,7 +246,7 @@ jobs:
   next_channel:
     name: 'History done: start Legends for Sleep'
     needs: c
-    if: ${{ !cancelled() && vars.LEGENDS_NIGHTLY == 'on' && (inputs.channel || 'history') == 'history' && !inputs.test }}
+    if: ${{ !cancelled() && vars.LEGENDS_NIGHTLY == 'on' && (inputs.channel || 'history') == 'history' && !inputs.test && (needs.c.result == 'success' || (inputs.attempt || '1') == '3') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -253,3 +256,18 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: gh workflow run night.yml -R ${{ github.repository }} -f channel=legends -f minutes=${{ inputs.minutes || '120' }} -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f full_after=false
+  retry:
+    name: 'Failed: try again in 10 min (resumes from the saved step)'
+    needs: [a, b, kit, c]
+    if: ${{ failure() && !inputs.test && (inputs.attempt || '1') != '3' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: write
+    steps:
+    - name: Wait out a temporary outage, then start the same night again (USER 10-26 - no errors in future runs)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        sleep 600
+        gh workflow run night.yml -R ${{ github.repository }} -f channel=${{ inputs.channel || 'history' }} -f minutes=${{ inputs.minutes || '120' }} -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f full_after=false -f attempt=${{ (inputs.attempt || '1') == '1' && '2' || '3' }}
