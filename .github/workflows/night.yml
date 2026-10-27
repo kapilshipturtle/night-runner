@@ -38,6 +38,7 @@ env:
   KAGGLE_NIGHT_JSON: ${{ secrets.KAGGLE_NIGHT_JSON }}
   KAGGLE_NIGHT_JSON_2: ${{ secrets.KAGGLE_NIGHT_JSON_2 }}
   GDRIVE_TOKEN_JSON: ${{ secrets.GDRIVE_TOKEN_JSON }}
+  GDRIVE_TOKEN_JSON_LEGENDS: ${{ secrets.GDRIVE_TOKEN_JSON_LEGENDS }}   # science channel's own Google account (USER 10-27)
   GMAIL_USER: ${{ secrets.GMAIL_USER }}
   GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
   MAIL_TO: ${{ secrets.MAIL_TO }}
@@ -68,7 +69,7 @@ jobs:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
-        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        \ \"$GDRIVE_TOKEN_JSON\" \"$GDRIVE_TOKEN_JSON_LEGENDS\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -95,7 +96,8 @@ jobs:
       timeout-minutes: 30
       run: bash code/scripts/setup-night.sh --stock
     - name: Gemini Chrome (Legends pictures on this machine)
-      if: ${{ (inputs.channel || 'history') == 'legends' }}
+      # 10-27: the channel became science with REAL clips; Gemini only if switched back on (one less step to fail)
+      if: ${{ (inputs.channel || 'history') == 'legends' && vars.LEGENDS_GEMINI == 'on' }}
       timeout-minutes: 15
       run: bash code/scripts/setup-gemini.sh
     - name: Bridge box key
@@ -115,7 +117,7 @@ jobs:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
-        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        \ \"$GDRIVE_TOKEN_JSON\" \"$GDRIVE_TOKEN_JSON_LEGENDS\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -140,7 +142,7 @@ jobs:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
-        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        \ \"$GDRIVE_TOKEN_JSON\" \"$GDRIVE_TOKEN_JSON_LEGENDS\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -173,7 +175,7 @@ jobs:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
-        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        \ \"$GDRIVE_TOKEN_JSON\" \"$GDRIVE_TOKEN_JSON_LEGENDS\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
@@ -207,7 +209,7 @@ jobs:
     - name: Mask every secret
       run: "for v in \"$CLAUDE_TOKEN_TECH\" \"$CLAUDE_TOKEN_MANN\" \"$CLAUDE_TOKEN_KAPIL\" \"$FISH_API_KEY\" \"$GMAIL_APP_PASSWORD\" \"$PEXELS_API_KEY\" \"$PIXABAY_API_KEY\" \"$VAST_API_KEY\"; do [ -n \"$v\" ] && echo \"\
         ::add-mask::$v\"; done\n# JSON secrets: GitHub masks only the whole value, so mask every string inside them too (review I8)\nfor j in \"$CODEX_AUTH_JSON\" \"$KAGGLE_NIGHT_JSON\" \"$KAGGLE_NIGHT_JSON_2\"\
-        \ \"$GDRIVE_TOKEN_JSON\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
+        \ \"$GDRIVE_TOKEN_JSON\" \"$GDRIVE_TOKEN_JSON_LEGENDS\"; do\n  [ -n \"$j\" ] && printf '%s' \"$j\" | jq -r '.. | strings' 2>/dev/null | while IFS= read -r v; do\n    [ ${#v} -ge 8 ] && echo \"::add-mask::$v\"; done\ndone; true\n"
     - uses: actions/checkout@v4
       with:
         repository: kapilshipturtle/night-studio
