@@ -56,7 +56,7 @@ jobs:
         run: |
           id=$(yt-dlp --flat-playlist --print "%(id)s" "https://www.youtube.com/results?search_query=pulsar+nasa&sp=EgIwAQ%253D%253D" --playlist-items 1 2>/dev/null)
           echo "video $id"
-          yt-dlp --cookies-from-browser "chrome:$HOME/bridge-profile" -f "bv*[height<=1080][ext=mp4]/bv*" \
+          yt-dlp --js-runtimes node --cookies-from-browser "chrome:$HOME/bridge-profile" -f "bv*[height<=1080]/b[height<=1080]/bv*/b" \
             --download-sections "*00:00:10-00:00:18" -o "clip.%(ext)s" "https://www.youtube.com/watch?v=$id" 2>&1 \
             | grep -v -i cookie | tail -6 || true
           ls -la clip.* 2>/dev/null && ffprobe -v error -show_entries format=duration -of csv=p=0 clip.* && echo CUT_OK || echo CUT_FAILED
