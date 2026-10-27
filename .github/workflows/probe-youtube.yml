@@ -1,0 +1,17 @@
+name: probe-youtube
+# 10-27: can a GitHub runner cut a few seconds from a YouTube video? (no secrets, no AI tokens)
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: pip install -q -U yt-dlp && sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1 || true
+      - name: search (Creative Commons filter)
+        run: yt-dlp --flat-playlist --print "%(id)s %(title).60s" "https://www.youtube.com/results?search_query=pulsar+nasa&sp=EgIwAQ%253D%253D" --playlist-items 1-5 || echo SEARCH_FAILED
+      - name: cut 8 seconds
+        run: |
+          id=$(yt-dlp --flat-playlist --print "%(id)s" "https://www.youtube.com/results?search_query=pulsar+nasa&sp=EgIwAQ%253D%253D" --playlist-items 1 2>/dev/null)
+          echo "video $id"
+          yt-dlp -f "bv*[height<=1080][ext=mp4]/bv*" --download-sections "*00:00:10-00:00:18" -o clip.%(ext)s "https://www.youtube.com/watch?v=$id" 2>&1 | tail -5 || true
+          ls -la clip.* 2>/dev/null && echo CUT_OK || echo CUT_FAILED
