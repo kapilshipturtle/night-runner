@@ -1,0 +1,21 @@
+name: probe-setup
+# 10-27: runs night-studio's setup-runner.sh from a branch, optionally forcing the static-ffmpeg fallback (no AI tokens)
+on:
+  workflow_dispatch:
+    inputs:
+      code_ref: {description: "night-studio branch", default: "main"}
+      force_static: {description: "1 = force the static-ffmpeg fallback", default: "1"}
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {repository: kapilshipturtle/night-studio, ref: "${{ inputs.code_ref }}", token: "${{ secrets.NIGHT_CODE_TOKEN }}", path: code}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: bash code/scripts/setup-runner.sh
+        env: {NIGHT_FORCE_STATIC_FFMPEG: "${{ inputs.force_static }}"}
+      - run: which ffmpeg ffprobe && ffmpeg -version | head -1 && ffprobe -version | head -1
