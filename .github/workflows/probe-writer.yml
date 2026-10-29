@@ -25,6 +25,6 @@ jobs:
         case "$ACCOUNT" in tech) T="$TOK_TECH";; kapil) T="$TOK_KAPIL";; mann) T="$TOK_MANN";; *) echo "unknown account"; exit 1;; esac
         [ -n "$T" ] || { echo "NO_TOKEN: the secret is empty"; exit 1; }
         out=$(CLAUDE_CODE_OAUTH_TOKEN="$T" claude -p "Reply with exactly the word OK" --output-format json --max-turns 1 \
-              --model claude-sonnet-5-5 2>&1) || true
+              --model claude-haiku-5-5 2>&1) || true
         if echo "$out" | grep -q '"is_error":false' && echo "$out" | grep -q 'OK'; then echo "WRITER_OK ($ACCOUNT)";
         else echo "WRITER_FAILED ($ACCOUNT):"; echo "$out" | grep -oE '"(result|subtype|api_error_status)":[^,]*' | head -5; exit 1; fi
