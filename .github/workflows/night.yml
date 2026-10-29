@@ -2,7 +2,7 @@
 name: night
 on:
   schedule:
-    - cron: "30 16 * * *"          # 22:00 IST, every night (USER 10-24: "run it automatically")
+    - cron: "31 14 * * *"          # 20:01 IST, both channels side by side (USER 10-29: "in morning i expect 2 videos")
   workflow_dispatch:
     inputs:
       minutes:
@@ -254,18 +254,20 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: gh workflow run night.yml -R ${{ github.repository }} -f minutes=120 -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f channel=${{ inputs.channel || 'history' }}
   next_channel:
-    name: 'History done: start Legends for Sleep'
-    needs: c
-    if: ${{ !cancelled() && vars.LEGENDS_NIGHTLY == 'on' && (inputs.channel || 'history') == 'history' && !inputs.test && (needs.c.result == 'success' || (inputs.attempt || '1') == '3') }}
+    name: 'Start tonight''s science film alongside History'
+    # USER 10-29 "in morning i expect 2 videos": chained after History, science (~8 h) landed around midday; GitHub also
+    # starts the schedule 2-5 h late (MEASURED 10-25..28). Both now start together on their own Kaggle account,
+    # Drive and concurrency group.
+    if: ${{ github.event_name == 'schedule' && vars.LEGENDS_NIGHTLY == 'on' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       actions: write
     steps:
-    - name: Start tonight's Legends for Sleep film (USER 10-25 - after History finishes)
+    - name: Start tonight's science film now
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow run night.yml -R ${{ github.repository }} -f channel=legends -f minutes=${{ inputs.minutes || '120' }} -f test=false -f code_ref=${{ inputs.code_ref || 'main' }} -f full_after=false
+      run: gh workflow run night.yml -R ${{ github.repository }} -f channel=legends -f minutes=120 -f test=false -f code_ref=main -f full_after=false
   retry:
     name: 'Failed: try again in 10 min (resumes from the saved step)'
     needs: [a, b, kit, c]
