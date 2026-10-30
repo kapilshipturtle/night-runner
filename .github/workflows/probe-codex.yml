@@ -1,0 +1,25 @@
+name: probe-codex
+# 10-30: why does the thumbnail step's Codex fail to sign in? One tiny turn with the same CLI and flags as
+# night/publish.py thumbnails(); prints only the exit code and error CLASS words, never any token or account text.
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+    - run: npm i -g -s @openai/codex@0.149.1
+    - name: One tiny Codex turn
+      env:
+        AUTH: ${{ secrets.CODEX_AUTH_JSON }}
+      run: |
+        [ -n "$AUTH" ] || { echo "NO_AUTH: the secret is empty"; exit 1; }
+        export HOME="$(mktemp -d)"; mkdir -p "$HOME/.codex"; printf '%s' "$AUTH" > "$HOME/.codex/auth.json"
+        code=0
+        out=$(codex exec --json --skip-git-repo-check --sandbox read-only -m gpt-5.6-sol -c 'model_reasoning_effort="low"' \
+              "Reply with exactly the word OK" < /dev/null 2>&1) || code=$?
+        echo "exit=$code"
+        echo "$out" | grep -oiE "codex_login::[a-z_:]+|refresh[a-z_ ]{0,24}|expired|invalid_[a-z_]+|unauthori[sz]ed|\b(401|403|429)\b|usage limit|rate limit|not logged in|keyring|permission denied|read-only file system|no such file|\"type\":\"[a-z._]+\"|\bOK\b" | sort | uniq -c | head -30
